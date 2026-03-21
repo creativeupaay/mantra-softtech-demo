@@ -15,8 +15,13 @@
     "@pipecat-ai/daily-transport": "^1.6.0",
     "@pipecat-ai/small-webrtc-transport": "^1.8.0",
     "@pipecat-ai/voice-ui-kit": "^0.6.0",
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/three": "^0.183.1",
+    "lucide-react": "^0.577.0",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^7.13.1",
+    "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

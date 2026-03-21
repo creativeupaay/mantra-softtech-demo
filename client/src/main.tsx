@@ -1,5 +1,6 @@
 import { StrictMode, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import { ThemeProvider } from '@pipecat-ai/voice-ui-kit';
 
@@ -11,7 +12,8 @@ import {
   SpinLoader,
 } from '@pipecat-ai/voice-ui-kit';
 
-import { App } from './components/App';
+import { App as DefaultApp } from './components/App';
+import { Home } from './pages/Home';
 import {
   AVAILABLE_TRANSPORTS,
   DEFAULT_TRANSPORT,
@@ -43,14 +45,33 @@ export const Main = () => {
             ) : error ? (
               <ErrorCard>{error}</ErrorCard>
             ) : (
-              <App
-                client={client}
-                handleConnect={handleConnect}
-                handleDisconnect={handleDisconnect}
-                transportType={transportType}
-                onTransportChange={setTransportType}
-                availableTransports={AVAILABLE_TRANSPORTS}
-              />
+              <BrowserRouter>
+                <Routes>
+                  <Route 
+                    path="/default" 
+                    element={
+                      <DefaultApp
+                        client={client}
+                        handleConnect={handleConnect}
+                        handleDisconnect={handleDisconnect}
+                        transportType={transportType}
+                        onTransportChange={setTransportType}
+                        availableTransports={AVAILABLE_TRANSPORTS}
+                      />
+                    } 
+                  />
+                  <Route 
+                    path="/" 
+                    element={
+                      <Home
+                        client={client}
+                        handleConnect={handleConnect}
+                        handleDisconnect={handleDisconnect}
+                      />
+                    } 
+                  />
+                </Routes>
+              </BrowserRouter>
             )
           }
         </PipecatAppBase>

@@ -1,0 +1,22 @@
+[project]
+name = "medical-assistant"
+version = "0.1.0"
+description = "Voice AI bot built with Pipecat"
+requires-python = ">=3.10,<3.14"
+dependencies = [
+    "pipecat-ai[cartesia,deepgram,elevenlabs,google,runner,silero,webrtc,sarvam]",
+    "unidecode>=1.4.0",
+    "aiohttp>=3.9.0",
+    "qdrant-client[fastembed]>=1.7.0",
+]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.404,<2",
+    "ruff>=0.12.11,<1",
+]
+
+[tool.ruff]
+line-length = 100
+[tool.ruff.lint]
+select = ["I"]

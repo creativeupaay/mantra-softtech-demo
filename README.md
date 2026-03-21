@@ -1,15 +1,21 @@
-# medical-assistant
+# Mantra Softech Voice Agent
 
-A Pipecat AI voice agent built with a cascade pipeline (STT → LLM → TTS).
+A Pipecat-powered RAG voice agent that answers questions about Mantra Softech, a global leader in biometric security.
 
-## Configuration
+## Features
 
-- **Bot Type**: Web
-- **Transport(s)**: SmallWebRTC
-- **Pipeline**: Cascade
-  - **STT**: Deepgram
-  - **LLM**: Google Gemini
-  - **TTS**: Deepgram
+-   **Knowledge-Aware**: Uses RAG (Retrieval-Augmented Generation) to search internal company documents for accurate answers.
+-   **Sales-Driven**: Naturally transitions factual queries into consultation bookings.
+-   **Consultation Booking**: Built-in conversational flow to capture potential leads' names, availability, and contact details.
+-   **Multi-Voice Support**: Optimized for natural, helpful voice interactions.
+
+## Technical Specifications
+
+-   **Transport**: SmallWebRTC (Web-based voice)
+-   **Speech-to-Text (STT)**: Deepgram (nova-3 model)
+-   **Large Language Model (LLM)**: Google Gemini
+-   **Text-to-Speech (TTS)**: Cartesia (optimized for speed and quality)
+-   **Framework**: [Pipecat AI](https://docs.pipecat.ai/)
 
 ## Setup
 
@@ -31,14 +37,17 @@ A Pipecat AI voice agent built with a cascade pipeline (STT → LLM → TTS).
 
    ```bash
    cp .env.example .env
-   # Edit .env and add your API keys
+   # Edit .env and add your API keys:
+   # DEEPGRAM_API_KEY, GOOGLE_API_KEY, CARTESIA_API_KEY, etc.
    ```
 
 4. **Run the bot**:
 
-   - SmallWebRTC: `uv run bot.py`
+   ```bash
+   uv run bot.py
+   ```
 
-### Client
+### Client (Web UI)
 
 1. **Navigate to client directory**:
 
@@ -56,7 +65,8 @@ A Pipecat AI voice agent built with a cascade pipeline (STT → LLM → TTS).
 
    ```bash
    cp env.example .env.local
-   # Edit .env.local if needed (defaults to localhost:7860)
+   # Edit .env.local to point to your bot server:
+   # VITE_BOT_START_URL=http://localhost:7860/start
    ```
 
    > **Note:** Environment variables in Vite are bundled into the client and exposed in the browser. For production applications that require secret protection, consider implementing a backend proxy server to handle API requests and manage sensitive credentials securely.
@@ -68,30 +78,28 @@ A Pipecat AI voice agent built with a cascade pipeline (STT → LLM → TTS).
    ```
 
 5. **Open browser**:
-
-   http://localhost:5173
+   Visit `http://localhost:5173` to start the voice interaction.
 
 ## Project Structure
 
 ```
-medical-assistant/
-├── server/              # Python bot server
-│   ├── bot.py           # Main bot implementation
-│   ├── pyproject.toml   # Python dependencies
-│   ├── env.example      # Environment variables template
-│   ├── .env             # Your API keys (git-ignored)
+mantra-tec-voice-agent/
+├── server/              # Python RAG bot server
+│   ├── bot.py           # Main Pipecat implementation
+│   ├── knowledge/       # Knowledge base source documents
+│   ├── tools.py         # Search & retrieval logic
+│   ├── pyproject.toml   # uv dependencies
 │   └── ...
-├── client/              # React application
-│   ├── src/             # Client source code
+├── client/              # React/Vite application
+│   ├── src/             # Frontend source code
 │   ├── package.json     # Node dependencies
 │   └── ...
-├── .gitignore           # Git ignore patterns
+├── .gitignore           # Root-level ignore rules
 └── README.md            # This file
 ```
+
 ## Learn More
 
 - [Pipecat Documentation](https://docs.pipecat.ai/)
-- [Voice UI Kit Documentation](https://voiceuikit.pipecat.ai/)
-- [Pipecat GitHub](https://github.com/pipecat-ai/pipecat)
-- [Pipecat Examples](https://github.com/pipecat-ai/pipecat-examples)
-- [Discord Community](https://discord.gg/pipecat)
+- [Voice UI Kit](https://voiceuikit.pipecat.ai/)
+- [Daily.co](https://www.daily.co/)

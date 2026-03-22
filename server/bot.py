@@ -71,9 +71,47 @@ class InjectTURNMiddleware(BaseHTTPMiddleware):
 original_create_server_app = pipecat.runner.run._create_server_app
 def custom_create_server_app(args):
     app = original_create_server_app(args)
-    # Add our middleware payload injector!
+    # Add our middleware payload injector for fallback WebRTC
     app.add_middleware(InjectTURNMiddleware)
     print("====== INJECTING TURN RELAY HTTP MIDDLEWARE ON STARTUP ======", flush=True)
+
+    from fastapi import WebSocket
+    from pipecat.audio.vad.silero import SileroVADAnalyzer
+    from pipecat.audio.vad.vad_analyzer import VADParams
+    from pipecat.serializers.protobuf import ProtobufFrameSerializer
+    from pipecat.transports.websocket.fastapi import (
+        FastAPIWebsocketParams,
+        FastAPIWebsocketTransport,
+    )
+
+    @app.websocket("/ws")
+    async def websocket_endpoint(websocket: WebSocket):
+        await websocket.accept()
+        logger.info("New WebSocket connection accepted!")
+        transport = FastAPIWebsocketTransport(
+            websocket=websocket,
+            params=FastAPIWebsocketParams(
+                audio_out_enabled=True,
+                add_wav_header=False,
+                vad_enabled=True,
+                vad_analyzer=SileroVADAnalyzer(
+                    params=VADParams(
+                        confidence=0.75,
+                        start_secs=0.3,
+                        stop_secs=1.2,
+                        min_volume=0.4,
+                    )
+                ),
+                vad_audio_passthrough=True,
+                serializer=ProtobufFrameSerializer(),
+                session_timeout=None
+            )
+        )
+        
+        # Start Pipecat pipeline using our websocket transport
+        await run_bot(transport, speaker="kavya")
+
+    print("====== MOUNTED WEBSOCKET ENDPOINT ON /ws ======", flush=True)
     return app
 
 # Apply the wrapper globally so pipecat uses our endpoint

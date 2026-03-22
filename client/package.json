@@ -15,6 +15,7 @@
     "@pipecat-ai/daily-transport": "^1.6.0",
     "@pipecat-ai/small-webrtc-transport": "^1.8.0",
     "@pipecat-ai/voice-ui-kit": "^0.6.0",
+    "@pipecat-ai/websocket-transport": "^1.6.1",
     "@tailwindcss/vite": "^4.2.2",
     "@types/three": "^0.183.1",
     "lucide-react": "^0.577.0",

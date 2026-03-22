@@ -6,18 +6,20 @@
 import type { DailyConnectionEndpoint } from '@pipecat-ai/daily-transport';
 import type { APIRequest } from '@pipecat-ai/client-js';
 
-export type TransportType = 'daily' | 'smallwebrtc';
+export type TransportType = 'daily' | 'smallwebrtc' | 'websocket';
 
 export const AVAILABLE_TRANSPORTS: TransportType[] = [
+  'websocket',
   'smallwebrtc',
 ];
 
 export const TRANSPORT_LABELS: Record<TransportType, string> = {
   daily: 'Daily',
   smallwebrtc: 'SmallWebRTC',
+  websocket: 'WebSocket',
 };
 
-export const DEFAULT_TRANSPORT: TransportType = 'smallwebrtc';
+export const DEFAULT_TRANSPORT: TransportType = 'websocket';
 
 const botStartUrl =
   import.meta.env.VITE_BOT_START_URL || 'http://localhost:7860/start';
@@ -61,8 +63,9 @@ if (botStartPublicApiKey) {
 
 export const TRANSPORT_CONFIG: Record<
   TransportType,
-  DailyConnectionEndpoint | APIRequest
+  DailyConnectionEndpoint | APIRequest | any
 > = {
   daily: dailyConfig,
   smallwebrtc: smallWebRTCConfig,
+  websocket: { endpoint: botStartUrl }
 };

@@ -20,56 +20,60 @@ Run the bot using::
 import asyncio
 import os
 import sys
-import re
-import uuid
+import json
 import pipecat.runner.run
-from fastapi import Request
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
-original_create_server_app = pipecat.runner.run._create_server_app
-
-def custom_create_server_app(args):
-    app = original_create_server_app(args)
-    print("====== INJECTING TURN RELAY WEBRTC ENDPOINT ON STARTUP ======", flush=True)
-    
-    # 1. Remove the default pipecat /start route
-    app.router.routes = [
-        route for route in app.router.routes 
-        if not (getattr(route, "path", "") == "/start" and "POST" in getattr(route, "methods", []))
-    ]
-    
-    # 2. Add our custom /start route with OpenRelay TURN servers guaranteed
-    @app.post("/start")
-    async def rtvi_start_patched(request: Request):
-        from pipecat.runner.run import active_sessions, logger
+class InjectTURNMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
         
-        try:
-            request_data = await request.json()
-            logger.debug(f"Received Patched TURN request: {request_data}")
-        except Exception as e:
-            logger.error(f"Failed to parse request body: {e}")
-            request_data = {}
-
-        session_id = str(uuid.uuid4())
-        active_sessions[session_id] = request_data.get("body", {})
-
-        result = {"sessionId": session_id}
-        if request_data.get("enableDefaultIceServers"):
-            result["iceConfig"] = {
-                "iceServers": [
-                    {"urls": ["stun:stun.l.google.com:19302"]},
-                    {
+        # Only intercept the successful POST /start response
+        if request.url.path == "/start" and request.method == "POST" and response.status_code == 200:
+            try:
+                # Read the original response body asynchronously
+                body_bytes = b""
+                async for chunk in response.body_iterator:
+                    body_bytes += chunk
+                
+                # Decode and inject
+                data = json.loads(body_bytes)
+                if "iceConfig" in data and "iceServers" in data["iceConfig"]:
+                    data["iceConfig"]["iceServers"].append({
                         "urls": [
-                            "turn:openrelay.metered.ca:80", 
-                            "turn:openrelay.metered.ca:443", 
+                            "turn:openrelay.metered.ca:80",
+                            "turn:openrelay.metered.ca:443",
                             "turn:openrelay.metered.ca:443?transport=tcp"
                         ],
                         "username": "openrelayproject",
                         "credential": "openrelayproject"
-                    }
-                ]
-            }
-        return result
-    
+                    })
+                    
+                # Encode the modified body
+                modified_body = json.dumps(data).encode("utf-8")
+                
+                # Copy headers and adjust Content-Length precisely
+                modified_headers = dict(response.headers)
+                modified_headers["content-length"] = str(len(modified_body))
+                
+                return Response(
+                    content=modified_body, 
+                    status_code=response.status_code, 
+                    headers=modified_headers,
+                    media_type=response.media_type
+                )
+            except Exception as e:
+                print(f"Failed to inject TURN server into response: {e}")
+                
+        return response
+
+original_create_server_app = pipecat.runner.run._create_server_app
+def custom_create_server_app(args):
+    app = original_create_server_app(args)
+    # Add our middleware payload injector!
+    app.add_middleware(InjectTURNMiddleware)
+    print("====== INJECTING TURN RELAY HTTP MIDDLEWARE ON STARTUP ======", flush=True)
     return app
 
 # Apply the wrapper globally so pipecat uses our endpoint

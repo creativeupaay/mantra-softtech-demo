@@ -17,43 +17,63 @@ Run the bot using::
     uv run bot.py
 """
 
-import os
 import asyncio
+import os
 import sys
 import re
+import uuid
+import pipecat.runner.run
+from fastapi import Request
 
-def force_turn_server_patch():
-    try:
-        import pipecat.runner.run
-        filepath = pipecat.runner.run.__file__
-        with open(filepath, 'r') as f:
-            content = f.read()
+original_create_server_app = pipecat.runner.run._create_server_app
 
-        orig = content
+def custom_create_server_app(args):
+    app = original_create_server_app(args)
+    print("====== INJECTING TURN RELAY WEBRTC ENDPOINT ON STARTUP ======", flush=True)
+    
+    # 1. Remove the default pipecat /start route
+    app.router.routes = [
+        route for route in app.router.routes 
+        if not (getattr(route, "path", "") == "/start" and "POST" in getattr(route, "methods", []))
+    ]
+    
+    # 2. Add our custom /start route with OpenRelay TURN servers guaranteed
+    @app.post("/start")
+    async def rtvi_start_patched(request: Request):
+        from pipecat.runner.run import active_sessions, logger
+        
+        try:
+            request_data = await request.json()
+            logger.debug(f"Received Patched TURN request: {request_data}")
+        except Exception as e:
+            logger.error(f"Failed to parse request body: {e}")
+            request_data = {}
 
-        # Inject TypedDict fields for TURN auth
-        content = re.sub(
-            r'class IceServer\(TypedDict, total=False\):\s+urls: Union\[str, List\[str\]\]\s+class IceConfig\(TypedDict\):',
-            'class IceServer(TypedDict, total=False):\n        urls: Union[str, List[str]]\n        username: str\n        credential: str\n\n    class IceConfig(TypedDict):',
-            content
-        )
+        session_id = str(uuid.uuid4())
+        active_sessions[session_id] = request_data.get("body", {})
 
-        # Inject TURN relay servers into the hardcoded DefaultIceServers array
-        content = re.sub(
-            r'iceServers=\[\s*IceServer\(urls=\["stun:stun\.l\.google\.com:19302"\]\)\s*\]',
-            'iceServers=[IceServer(urls=["stun:stun.l.google.com:19302"]), IceServer(urls=["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"], username="openrelayproject", credential="openrelayproject")]',
-            content
-        )
+        result = {"sessionId": session_id}
+        if request_data.get("enableDefaultIceServers"):
+            result["iceConfig"] = {
+                "iceServers": [
+                    {"urls": ["stun:stun.l.google.com:19302"]},
+                    {
+                        "urls": [
+                            "turn:openrelay.metered.ca:80", 
+                            "turn:openrelay.metered.ca:443", 
+                            "turn:openrelay.metered.ca:443?transport=tcp"
+                        ],
+                        "username": "openrelayproject",
+                        "credential": "openrelayproject"
+                    }
+                ]
+            }
+        return result
+    
+    return app
 
-        if orig != content:
-            with open(filepath, 'w') as f:
-                f.write(content)
-            print("======== PIPECAT SDK TURN SERVER HOTFIX APPLIED LOCALLY! ========", flush=True)
-    except Exception as e:
-        print(f"Failed to auto-patch pipecat sdk: {e}", flush=True)
-
-# Run instantly at import!
-force_turn_server_patch()
+# Apply the wrapper globally so pipecat uses our endpoint
+pipecat.runner.run._create_server_app = custom_create_server_app
 
 from dotenv import load_dotenv
 from loguru import logger

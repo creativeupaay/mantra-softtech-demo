@@ -541,6 +541,17 @@ wheels = [
 ]
 
 [[package]]
+name = "daily-python"
+version = "0.23.0"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c7/3b/0f1465833787db21933caf9db0c4e45d10a31f477c2ae08ebe3edf31764d/daily_python-0.23.0-cp37-abi3-macosx_10_15_x86_64.whl", hash = "sha256:74998c9aabeccf8306def27219eb943df5a268f26ba7e25e0a105ced9425591a", size = 13450473, upload-time = "2025-12-18T03:21:50.488Z" },
+    { url = "https://files.pythonhosted.org/packages/b0/ca/7a9b581d411101454855c21559b1c9d9d58b6c527480548bba03e00a5641/daily_python-0.23.0-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:ce80746f5cba434371a9cb9995d8c4ec19d1490bd993b7dfd35356d81bd68425", size = 11988100, upload-time = "2025-12-18T03:21:53.265Z" },
+    { url = "https://files.pythonhosted.org/packages/40/eb/15303b6ae2cdc5c591d6629d162085037697ca519d57751408c66f775991/daily_python-0.23.0-cp37-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:21a59b1730ae047f2335b9fdcf8ebb9fe05c3768dc4239ec955461f3f78476b0", size = 14094021, upload-time = "2025-12-18T03:21:55.606Z" },
+    { url = "https://files.pythonhosted.org/packages/65/b9/f063e4854ba6e4edeea46e082720b7af82fb3cbf27e60efce63dbe34fe6d/daily_python-0.23.0-cp37-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:00b22041ef85556cc06262f9b8e39b686bdf37d50219d07542d7a2f9c3d413d4", size = 14616886, upload-time = "2025-12-18T03:21:58.084Z" },
+]
+
+[[package]]
 name = "dataclasses-json"
 version = "0.6.7"
 source = { registry = "https://pypi.org/simple" }
@@ -1599,7 +1610,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "aiohttp" },
-    { name = "pipecat-ai", extra = ["cartesia", "deepgram", "elevenlabs", "google", "runner", "sarvam", "silero", "webrtc"] },
+    { name = "pipecat-ai", extra = ["cartesia", "daily", "deepgram", "elevenlabs", "google", "runner", "sarvam", "silero", "webrtc"] },
     { name = "qdrant-client", extra = ["fastembed"] },
     { name = "unidecode" },
 ]
@@ -1613,7 +1624,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.9.0" },
-    { name = "pipecat-ai", extras = ["cartesia", "deepgram", "elevenlabs", "google", "runner", "silero", "webrtc", "sarvam"] },
+    { name = "pipecat-ai", extras = ["cartesia", "daily", "deepgram", "elevenlabs", "google", "runner", "silero", "webrtc", "sarvam"] },
     { name = "qdrant-client", extras = ["fastembed"], specifier = ">=1.7.0" },
     { name = "unidecode", specifier = ">=1.4.0" },
 ]
@@ -2202,6 +2213,9 @@ wheels = [
 cartesia = [
     { name = "cartesia" },
     { name = "websockets" },
+]
+daily = [
+    { name = "daily-python" },
 ]
 deepgram = [
     { name = "deepgram-sdk" },

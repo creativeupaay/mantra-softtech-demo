@@ -383,7 +383,6 @@ async def bot(runner_args: RunnerArguments):
                     audio_out_enabled=True,
                 ),
             )
-            # Extract speaker if provided by client (e.g. from request body)
             extra_data = getattr(runner_args, "extra_data", {})
             speaker = extra_data.get("speaker", "kavya")
             await run_bot(transport, speaker)
@@ -393,13 +392,6 @@ async def bot(runner_args: RunnerArguments):
 
 
 if __name__ == "__main__":
-    import sys
-    import os
-
-    # Pluck from .env if defined, so you don't have to pass --host manually
-    pipecat_host = os.getenv("PIPECAT_HOST")
-    if pipecat_host and "--host" not in sys.argv:
-        sys.argv.extend(["--host", pipecat_host])
-
     from pipecat.runner.run import main
+
     main()

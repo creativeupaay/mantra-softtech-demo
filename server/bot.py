@@ -393,6 +393,13 @@ async def bot(runner_args: RunnerArguments):
 
 
 if __name__ == "__main__":
-    from pipecat.runner.run import main
+    import sys
+    import os
 
+    # Pluck from .env if defined, so you don't have to pass --host manually
+    pipecat_host = os.getenv("PIPECAT_HOST")
+    if pipecat_host and "--host" not in sys.argv:
+        sys.argv.extend(["--host", pipecat_host])
+
+    from pipecat.runner.run import main
     main()

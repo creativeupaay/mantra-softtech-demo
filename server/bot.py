@@ -391,7 +391,49 @@ async def bot(runner_args: RunnerArguments):
             return
 
 
+def patch_pipecat_runner():
+    '''
+    Automatically patches the pipecat SDK to inject free TURN servers.
+    This ensures that when you push to Google Cloud, the new instance gets the TURN servers too.
+    '''
+    try:
+        import pipecat.runner.run
+        filepath = pipecat.runner.run.__file__
+        with open(filepath, 'r') as f:
+            content = f.read()
+            
+        # We also add the username and credential keys to the TypedDict if they don't exist
+        typed_dict_target = '''    class IceServer(TypedDict, total=False):
+        urls: Union[str, List[str]]
+
+    class IceConfig(TypedDict):'''
+        typed_dict_replacement = '''    class IceServer(TypedDict, total=False):
+        urls: Union[str, List[str]]
+        username: str
+        credential: str
+
+    class IceConfig(TypedDict):'''
+        
+        target = 'iceServers=[IceServer(urls=["stun:stun.l.google.com:19302"])]'
+        replacement = 'iceServers=[IceServer(urls=["stun:stun.l.google.com:19302"]), IceServer(urls=["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"], username="openrelayproject", credential="openrelayproject")]'
+        
+        patched = False
+        if typed_dict_target in content:
+            content = content.replace(typed_dict_target, typed_dict_replacement)
+            patched = True
+        if target in content:
+            content = content.replace(target, replacement)
+            patched = True
+            
+        if patched:
+            with open(filepath, 'w') as f:
+                f.write(content)
+            print("==== Successfully patched Pipecat runner with TURN servers! ====")
+    except Exception as e:
+        print(f"Failed to patch runner: {e}")
+
 if __name__ == "__main__":
+    patch_pipecat_runner()
     from pipecat.runner.run import main
 
     main()
